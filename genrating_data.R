@@ -4,24 +4,38 @@ library(plyr)
 library(dplyr)
 library(tidyverse)
 library(scryr)
+library(RCurl)
 # library("ndjson")
 #conflict_prefer("fromJSON", "rjson")
 # mode <- "modern"
 # string <- "Oracle Cards"
 
 DL_scry_fall_json <- function(string){
-options(timeout = 1000)
+options(timeout = 10000)
   
 files <- scry_bulk_files()
 # json <- httr::GET(files$download_uri[files$name == string])
 
-download.file(files$download_uri[files$name == string],
-              destfile = paste0(
-                "./data/data_",str_replace(string,"\\s+","_"),".json"
-                ),
-              # cacheOK = FALSE,
-              quiet = TRUE,
-              mode="wb")
+# download.file(files$download_uri[files$name == string],
+#               destfile = paste0(
+#                 "./data/data_",str_replace(string,"\\s+","_"),".json"
+#                 ),
+#               # cacheOK = FALSE,
+#               quiet = TRUE,
+#               mode="wb")
+
+file_dl = RCurl::CFILE(
+  paste0(
+  "./data/data_",str_replace(string,"\\s+","_"),".json"
+  ),
+  mode = "wb"
+  )
+
+RCurl::curlPerform(url = files$download_uri[files$name == string],
+                   writedata = file_dl@ref)
+close(file_dl)
+
+
 
 options(timeout = 60)
 
@@ -42,7 +56,7 @@ pull_scry_fall <- function(mode){
   tictoc::tic(mode)
   if (mode == "oracle") {
   base_data <- DL_scry_fall_json(
-    "Oracle Cards"
+    string = "Oracle Cards"
    # "Default Cards"
   ) 
   base_data_rename <- base_data %>%
@@ -52,7 +66,7 @@ pull_scry_fall <- function(mode){
   rm(base_data)
   } else if(mode == "all") {
     base_data <- DL_scry_fall_json(#scry_bulk_file(
-      "All Cards"
+      string =  "All Cards"
     ) 
     
     base_data_rename <- base_data %>%
@@ -91,8 +105,8 @@ pull_scry_fall <- function(mode){
 
 
 
-pull_scry_fall("oracle")
+pull_scry_fall(mode = "oracle")
 
-pull_scry_fall("all")
+pull_scry_fall(mode = "all")
 
 
