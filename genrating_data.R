@@ -1,7 +1,5 @@
 ## parsing deck
 #source : https://scryfall.com/docs/api/bulk-data
-library(plyr)
-library(dplyr)
 library(tidyverse)
 library(scryr)
 library(RCurl)
@@ -9,6 +7,10 @@ library(RCurl)
 #conflict_prefer("fromJSON", "rjson")
 # mode <- "modern"
 # string <- "Oracle Cards"
+
+
+
+
 
 DL_scry_fall_json <- function(string){
 options(timeout = 10000)
@@ -24,6 +26,7 @@ files <- scry_bulk_files()
 #               quiet = TRUE,
 #               mode="wb")
 
+print(paste0("start DL : ",string))
 file_dl = RCurl::CFILE(
   paste0(
   "./data/data_",str_replace(string,"\\s+","_"),".json"
@@ -38,7 +41,7 @@ close(file_dl)
 
 
 options(timeout = 60)
-
+print(paste0("end DL : ",string))
 data_frame_res <- jsonlite::fromJSON(
   paste0("./data/data_",str_replace(string,"\\s+","_"),".json")#,  flatten = TRUE
   ) %>%
@@ -65,7 +68,8 @@ pull_scry_fall <- function(mode){
   
   rm(base_data)
   } else if(mode == "all") {
-    base_data <- DL_scry_fall_json(#scry_bulk_file(
+    base_data <- DL_scry_fall_json(
+      #scry_bulk_file(
       string =  "All Cards"
     ) 
     
@@ -92,7 +96,7 @@ pull_scry_fall <- function(mode){
     write.csv(
       complete_table %>%
                   # filter(legalities.modern == "legal")  %>%
-                  distinct(name,.keep_all = TRUE) %>%
+                  # distinct(name,.keep_all = TRUE) %>%
                   purrr::keep(~!all(is.na(.))),
               file = "MTG_data/DBcarte_oracle.csv")
   } else if (mode == "all") {
